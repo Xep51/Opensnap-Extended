@@ -40,7 +40,7 @@ Make sure you have all prerequisits:
 
 In Arch:
 
-	sudo apt-get install base-devel libx11 gtk3 wmctrl
+	sudo pacman -S install base-devel libx11 gtk3 wmctrl
 
 In Debian:
 
