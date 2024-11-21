@@ -12,7 +12,7 @@ Fork goals
 * Maximizing with consideration of windows borders
 * Support for all keyboard layouts (currently only English and Russian)
 * Detecting screen layout changes
-*
+* fix windows not snapping if they are grabbed near the edge of the screen
 
 Does this work with other window managers?
 ------------------------------------------
@@ -40,7 +40,7 @@ Make sure you have all prerequisits:
 
 In Arch:
 
-	sudo pacman -S install base-devel libx11 gtk3 wmctrl
+    sudo pacman -S install base-devel libx11 gtk3 wmctrl
 
 In Debian:
 
