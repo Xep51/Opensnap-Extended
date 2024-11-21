@@ -26,6 +26,7 @@ screens scrinfo;
 
 int main(int argc, char **argv)
 {
+	
     gtk_init(&argc, &argv);                     
     Display *dsp = XOpenDisplay( NULL );
     if( !dsp ){ return 1; }
@@ -54,18 +55,44 @@ int main(int argc, char **argv)
     if(!directoryExists(configbase)) {
         fprintf(stderr, "Warning: Configuration folder '%s' does not seem to exist.\n", configbase);
     }
+    
+	KeyCode win_keycode = XKeysymToKeycode(dsp, XStringToKeysym("Super_L"));
 
     while(1){
+    
+   		char keys[32];
+   		XQueryKeymap(dsp, keys);
+
+   		if (keys[win_keycode / 8] & (1 << (win_keycode % 8))) {
+   		   if(verbose) printf("Win pressed\n");
+   		} else {
+   		   if(verbose) printf("Win not pressed\n");
+   		}
+
+   		Window root = DefaultRootWindow(dsp);
+   		int root_x, root_y, win_x, win_y, button_state; 
+   		unsigned int mask; 
+   		XQueryPointer(dsp, root, &root, &root, &root_x, &root_y, &win_x, &win_y, &mask);
+
+   		if (mask & Button1Mask) {
+   		    if(verbose) printf("Left pressed\n");
+   		} else {
+   		    if(verbose) printf("Left not pressed\n");
+   		}
+
+
+
+   		
         getMousePosition(dsp, &event, &mousepos);
         scrnn = gdk_screen_get_monitor_at_point(gdk_screen_get_default(), mousepos.x, mousepos.y);
         //make mouse coordinates relative to screen
         relativeMousepos.x=mousepos.x-scrinfo.screens[scrnn].x;
         relativeMousepos.y=mousepos.y-scrinfo.screens[scrnn].y;
-        if(verbose)
+        if (verbose)
             printf("Mouse Coordinates: %d %d %d\n", mousepos.x, mousepos.y, mousepos.state );
-        if((LEFTCLICK & mousepos.state)==LEFTCLICK){
+        if (mask & Button1Mask) {
         	if(!isdrag && isinitialclick) {
-        		if(isTitlebarHit(dsp, &mousepos) || mousepos.state & WINDRAG_KEY){
+        		if(isTitlebarHit(dsp, &mousepos) || (keys[win_keycode / 8] & (1 << (win_keycode % 8)))) {
         			isdrag=1;
         		}
         	}
@@ -78,13 +105,12 @@ int main(int argc, char **argv)
             else if(relativeMousepos.y>=scrinfo.screens[scrnn].height-offset-1)
                 action=HIT_BOTTOM;
 			else
-				action=0;
+	                        action=0;
 				
             isinitialclick=0;
         }
         if(verbose)printf("action is: %d, isdrag is: %d, state is: %i\n",action,isdrag, mousepos.state);
-        if((((16 & mousepos.state) == mousepos.state || (WINDRAG_KEY & mousepos.state) == mousepos.state) && isdrag) || 
-        	(((16 & mousepos.state) == mousepos.state - 8192 || (WINDRAG_KEY & mousepos.state) == mousepos.state - 8192) && isdrag)){
+        if((((16 & mousepos.state) == mousepos.state || (!(mask & Button1Mask)) && isdrag))) {
 
 
             if(action){
