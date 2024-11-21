@@ -9,12 +9,12 @@ Fork goals
 ------------
 
 * Full-fledged unsnapping
-* Maximizing with consideration of windows borders
+* Maximizing with consideration of windows borders __(Done!)__
 * Support for all keyboard layouts (currently only English and Russian)
 * Detecting screen layout changes
 * Сreate a fully functional configuration file
 * Add a corner snapping function
-* Fix windows not snapping if they are grabbed near the screen edge (Done!)
+* Fix windows not snapping if they are grabbed near the screen edge __(Done!)__
 
 
 Does this work with other window managers?
@@ -37,19 +37,9 @@ If you want to install opensnap from source first make sure you have git install
 
 Fetch via git:
 
-    git clone https://github.com/lawl/opensnap.git
+    git clone https://github.com/Xep51/Opensnap-Extended.git
 
-Install dependencies:
-
-In Arch:
-
-    sudo pacman -S base-devel libx11 gtk3 wmctrl
-
-In Debian:
-
-    sudo apt-get install build-essential libx11-dev libgtk-3-dev wmctrl
-
-And finally build and install it:
+Build and install it:
 
     cd opensnap*
     make
@@ -74,6 +64,8 @@ If you want to customize these, you should copy the global configuration to your
     cp /etc/opensnap/* ~/.config/opensnap/
 
 You can now edit the configuration files in `~/.config/opensnap/`. Make sure to restart opensnap for it to see the new configuration directory.
+
+If you are using window borders, set the `WINDOW_BORDERS` variable in the config to the value specified in `border.Width` in `themerc`.
 
 How can I use it?
 -----------------
