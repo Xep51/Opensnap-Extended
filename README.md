@@ -12,7 +12,10 @@ Fork goals
 * Maximizing with consideration of windows borders
 * Support for all keyboard layouts (currently only English and Russian)
 * Detecting screen layout changes
-* fix windows not snapping if they are grabbed near the edge of the screen
+* Сreate a fully functional configuration file
+* Add a corner snapping function
+* Fix windows not snapping if they are grabbed near the screen edge (Done!)
+
 
 Does this work with other window managers?
 ------------------------------------------
@@ -36,11 +39,11 @@ Fetch via git:
 
     git clone https://github.com/lawl/opensnap.git
 
-Make sure you have all prerequisits:
+Install dependencies:
 
 In Arch:
 
-    sudo pacman -S install base-devel libx11 gtk3 wmctrl
+    sudo pacman -S base-devel libx11 gtk3 wmctrl
 
 In Debian:
 
@@ -79,7 +82,6 @@ This should tell you all you need to know:
     opensnap --help
 
 Copy the sample configs to ~/.config/opensnap/.
-
 
 Unsnap workaround
 -----------------
