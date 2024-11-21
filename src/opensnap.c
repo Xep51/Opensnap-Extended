@@ -83,8 +83,9 @@ int main(int argc, char **argv)
             isinitialclick=0;
         }
         if(verbose)printf("action is: %d, isdrag is: %d, state is: %i\n",action,isdrag, mousepos.state);
-        if(((16 & mousepos.state) == mousepos.state ||
-                    (WINDRAG_KEY  & mousepos.state) == mousepos.state) && isdrag){
+        if((((16 & mousepos.state) == mousepos.state || (WINDRAG_KEY & mousepos.state) == mousepos.state) && isdrag) || 
+        	(((16 & mousepos.state) == mousepos.state - 8192 || (WINDRAG_KEY & mousepos.state) == mousepos.state - 8192) && isdrag)){
+
 
             if(action){
                 getFocusedWindow(dsp,&activeWindow);
