@@ -5,45 +5,44 @@ What's that?
 ------------
 Opensnap brings the Aero Snap feature to Openbox.
 
-This repo is no longer maintained
+Fork goals
 ------------
 
-Known bugs you just have to work around:
-
-* No "unsnapping" feature (see end of this file for workaround)
-* opensnap doesn't detect screen layout changes (just restart opensnap)
+* Full-fledged unsnapping
+* Maximizing with consideration of windows borders
+* Support for all keyboard layouts (currently only English and Russian)
+* Detecting screen layout changes
+*
 
 Does this work with other window managers?
 ------------------------------------------
-The goal was to make it work with every EWMH compliant window manager.
+The author of the original project stated “The goal was to make it work with every EWMH compliant window manager.” but support for other WM's in this fork is not guaranteed.
 
-
-Dependencies?
+Dependencies
 -------------
-With the default configuration, you'll need wmctrl as a runtime dependency.
+Runtime:
+* __wmctrl__ (for default configuration)
 
-On most debian systems you should be able to install it by:
-
-    sudo apt-get install wmctrl
-
-If you want to build opensnap from source make sure you have these as well:
-
-    sudo apt-get install build-essential libx11-dev libgtk-3-dev
+Build:
+* __base-devel__
+* __libx11__
+* __gtk3__
 
 Installing
 ----------
-If you want to install opensnap from source first make sure you have git installed. (Or fetch a zip file: https://github.com/lawl/opensnap/archive/master.zip)
+If you want to install opensnap from source first make sure you have git installed.
 
 Fetch via git:
 
     git clone https://github.com/lawl/opensnap.git
 
-Fetch via zip:
-
-    wget https://github.com/lawl/opensnap/archive/master.zip
-    unzip master.zip
-
 Make sure you have all prerequisits:
+
+In Arch:
+
+	sudo apt-get install base-devel libx11 gtk3 wmctrl
+
+In Debian:
 
     sudo apt-get install build-essential libx11-dev libgtk-3-dev wmctrl
 
@@ -85,7 +84,8 @@ Copy the sample configs to ~/.config/opensnap/.
 Unsnap workaround
 -----------------
 
-As of now opensnap does not support unsnapping (see #4).
+Unsnapping is planned to be added...
+But as of now opensnap does not support unsnapping (see #4).
 You can find a workaround here: https://github.com/lawl/opensnap/issues/4#issuecomment-23666097
 
 Do note however that this does not perfect unsnapping. I.e. your cursor possition and the window you are dragging might get displaced a bit on unsnapping. But it does work well enough for daily use.
