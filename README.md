@@ -10,7 +10,7 @@ Fork goals
 
 * Full-fledged unsnapping
 * Maximizing with consideration of windows borders __(Done!)__
-* Support for all keyboard layouts (currently only English and Russian)
+* Support for all keyboard layouts __(Done!)__
 * Detecting screen layout changes
 * Сreate a fully functional configuration file
 * Add a corner snapping function
