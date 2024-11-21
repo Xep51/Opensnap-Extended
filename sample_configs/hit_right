@@ -6,10 +6,13 @@ SCREEN_HEIGHT="$3"
 SCREEN_OFFSET_X="$4"
 SCREEN_OFFSET_Y="$5"
 
+WINDOW_BORDERS="0" # write here the width of the window borders (0 if there are no borders).
+WINDOW_BORDERS="$(($WINDOW_BORDERS*2))" # this is necessary because the window has two borders: right and left.
+
 GRAVITY="0"
-WIDTH="$(($SCREEN_WIDTH/2))"
+WIDTH="$(($SCREEN_WIDTH/2-$WINDOW_BORDERS))"
 HEIGHT="-1"
-X="$(($SCREEN_OFFSET_X+$SCREEN_WIDTH-$WIDTH))"
+X="$(($SCREEN_OFFSET_X+$SCREEN_WIDTH-$WIDTH-$WINDOW_BORDERS))"
 Y="0"
 
 # we need to remove the maximized_horz attribute in case the window was maximized with hit_top before
