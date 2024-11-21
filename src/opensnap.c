@@ -64,6 +64,11 @@ int main(int argc, char **argv)
         if(verbose)
             printf("Mouse Coordinates: %d %d %d\n", mousepos.x, mousepos.y, mousepos.state );
         if((LEFTCLICK & mousepos.state)==LEFTCLICK){
+        	if(!isdrag && isinitialclick) {
+        		if(isTitlebarHit(dsp, &mousepos) || mousepos.state & WINDRAG_KEY){
+        			isdrag=1;
+        		}
+        	}
             if(relativeMousepos.y<=offset)
                 action=HIT_TOP;
             else if(relativeMousepos.x<=offset)
@@ -72,14 +77,9 @@ int main(int argc, char **argv)
                 action=HIT_RIGHT;
             else if(relativeMousepos.y>=scrinfo.screens[scrnn].height-offset-1)
                 action=HIT_BOTTOM;
-            else {
-                if(!isdrag && isinitialclick) {
-                    if(isTitlebarHit(dsp, &mousepos) || mousepos.state & WINDRAG_KEY){
-                        isdrag=1;
-                    }
-                }
-                action=0;
-            }
+			else
+				action=0;
+				
             isinitialclick=0;
         }
         if(verbose)printf("action is: %d, isdrag is: %d, state is: %i\n",action,isdrag, mousepos.state);
