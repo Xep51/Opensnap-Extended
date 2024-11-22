@@ -83,3 +83,7 @@ But as of now opensnap does not support unsnapping (see #4).
 You can find a workaround here: https://github.com/lawl/opensnap/issues/4#issuecomment-23666097
 
 Do note however that this does not perfect unsnapping. I.e. your cursor possition and the window you are dragging might get displaced a bit on unsnapping. But it does work well enough for daily use.
+
+Known issues
+-------------
+* The active window will be snapped even if the mouse and modifier key were pressed outside of it. The same will happen if the mouse was pressed on the title of another window and the focus when clicking on the window is disabled in the Openbox config. There is no way to fix this, for that you have to create a fork of Openbox itself... maybe someday I will do it.
