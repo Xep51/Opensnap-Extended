@@ -70,7 +70,7 @@ int main(int argc, char **argv)
    		}
 
    		Window root = DefaultRootWindow(dsp);
-   		int root_x, root_y, win_x, win_y, button_state; 
+   		int root_x, root_y, win_x, win_y; 
    		unsigned int mask; 
    		XQueryPointer(dsp, root, &root, &root, &root_x, &root_y, &win_x, &win_y, &mask);
 
@@ -80,11 +80,10 @@ int main(int argc, char **argv)
    		    if(verbose) printf("Left not pressed\n");
    		}
 
-
-
-   		
         getMousePosition(dsp, &event, &mousepos);
-        scrnn = gdk_screen_get_monitor_at_point(gdk_screen_get_default(), mousepos.x, mousepos.y);
+        //scrnn = gdk_screen_get_monitor_at_point(gdk_screen_get_default(), mousepos.x, mousepos.y);
+        GdkMonitor * mon = gdk_display_get_monitor_at_point(gdk_display_get_default(), mousepos.x, mousepos.y);
+        scrnn = getMonitorNumber(mon);
         //make mouse coordinates relative to screen
         relativeMousepos.x=mousepos.x-scrinfo.screens[scrnn].x;
         relativeMousepos.y=mousepos.y-scrinfo.screens[scrnn].y;
@@ -105,12 +104,12 @@ int main(int argc, char **argv)
             else if(relativeMousepos.y>=scrinfo.screens[scrnn].height-offset-1)
                 action=HIT_BOTTOM;
 			else
-	                        action=0;
+				action=0;
 				
             isinitialclick=0;
         }
         if(verbose)printf("action is: %d, isdrag is: %d, state is: %i\n",action,isdrag, mousepos.state);
-        if((((16 & mousepos.state) == mousepos.state || (!(mask & Button1Mask)) && isdrag))) {
+        if(((((16 & mousepos.state) == mousepos.state || (!(mask & Button1Mask))) && isdrag))) {
 
 
             if(action){
@@ -224,14 +223,27 @@ int directoryExists(char* path){
     }
 }
 
-void getScreens(screens *scrinfo){
-    GdkScreen *screen = gdk_screen_get_default();
-    gint nmon = gdk_screen_get_n_monitors(screen);
+int getMonitorNumber(GdkMonitor *monitor)
+{
+    GdkDisplay *display;
+    int n_monitors, i;
+
+    display = gdk_monitor_get_display(monitor);
+    n_monitors = gdk_display_get_n_monitors(display);
+    for(i = 0; i < n_monitors; i++){
+        if(gdk_display_get_monitor(display, i) == monitor)
+        return i;
+    }
+    return -1;
+}
+
+void getScreens(screens *scrinfo){    
+    int nmon = gdk_display_get_n_monitors(gdk_display_get_default());
     scrinfo->screens = (oRectangle*) malloc(sizeof(oRectangle)*nmon);
     scrinfo->amount=nmon;
     for(int i=0; i < nmon; i++){
         GdkRectangle rect;
-        gdk_screen_get_monitor_geometry(screen, i, &rect);
+        gdk_monitor_get_geometry(gdk_display_get_monitor(gdk_display_get_default(), i), &rect);
         scrinfo->screens[i].x=rect.x;
         scrinfo->screens[i].y=rect.y;
         scrinfo->screens[i].width=rect.width;
