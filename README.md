@@ -15,7 +15,7 @@ Fork goals
 * Сreate a fully functional configuration file
 * Add a corner snapping function
 * Fix windows not snapping if they are grabbed near the screen edge __(Done!)__
-
+* Get rid of the wmctrl dependency
 
 Does this work with other window managers?
 ------------------------------------------
@@ -87,7 +87,7 @@ The problem is that if you start moving too quickly after grabbing, the geometry
  
 To work perfectly, it is required to either move all Openbox code related to moving to Opensnap, or modify the source code of Openbox itself.
 
-If you use modification key to move windows, you need to put this into mousebind (replacing the default move bind):
+If you use modification key to move windows, you need to put this into mousebind config block in `~/.config/openbox/rc.xml` (replacing the default move bind):
 ```
 <mousebind button="W-Left" action="Drag">
   <action name="if">
