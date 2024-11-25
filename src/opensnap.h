@@ -1,5 +1,4 @@
 #define LEFTCLICK 256
-#define WINDRAG_KEY 0x40 // this is super. Alt_L would be 0x8. Check with "state" with xev on release
 #define HIT_TOP 1
 #define HIT_LEFT 2
 #define HIT_RIGHT 3
