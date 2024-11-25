@@ -1,0 +1,5 @@
+#!/bin/sh
+WINDOW_ID="$1"
+
+wmctrl -i -r "$WINDOW_ID" -b remove,maximized_vert
+wmctrl -i -r "$WINDOW_ID" -b remove,maximized_horz
