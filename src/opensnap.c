@@ -23,11 +23,12 @@ int offset=10;
 char configbase[MY_MAXPATH]={'\0'};
 //initialized at startup
 screens scrinfo;
-
+Window snap_wins[2048][3];
+short snap_count = 0;
 int main(int argc, char **argv)
 {
 	
-    gtk_init(&argc, &argv);                     
+    gtk_init(&argc, &argv);
     Display *dsp = XOpenDisplay( NULL );
     if( !dsp ){ return 1; }
 
@@ -49,25 +50,33 @@ int main(int argc, char **argv)
     Window activeWindow;
 
     findAndSetDefaultConfigDir();
-
+    
+	KeyCode win_keycode = XKeysymToKeycode(dsp, XStringToKeysym("Super_L"));
+	
     parseOpts(argc, argv);
 
     if(!directoryExists(configbase)) {
         fprintf(stderr, "Warning: Configuration folder '%s' does not seem to exist.\n", configbase);
     }
     
-	KeyCode win_keycode = XKeysymToKeycode(dsp, XStringToKeysym("Super_L"));
+
 
     while(1){
     
+    	if (verbose) printf("--------\n");
+    	
    		char keys[32];
    		XQueryKeymap(dsp, keys);
 
    		if (keys[win_keycode / 8] & (1 << (win_keycode % 8))) {
-   		   if(verbose) printf("Win pressed\n");
+   		   if (verbose) printf("Win pressed\n");
    		} else {
-   		   if(verbose) printf("Win not pressed\n");
+   		   if (verbose) printf("Win not pressed\n");
    		}
+		if (verbose)
+   			for (int i = 0; i < snap_count; i++) 
+   			    printf("%d: %dx%d\n", (unsigned int)snap_wins[i][0], (unsigned int)snap_wins[i][1], (unsigned int)snap_wins[i][2]);
+   			
 
    		Window root = DefaultRootWindow(dsp);
    		int root_x, root_y, win_x, win_y; 
@@ -92,7 +101,46 @@ int main(int argc, char **argv)
         if (mask & Button1Mask) {
         	if(!isdrag && isinitialclick) {
         		if(isTitlebarHit(dsp, &mousepos) || (keys[win_keycode / 8] & (1 << (win_keycode % 8)))) {
+				
         			isdrag=1;
+        		
+        			// unsnappig
+        			
+        			getFocusedWindow(dsp,&activeWindow);
+        			findParentWindow(dsp,&activeWindow,&parentWin);
+        			
+        			// check for snap
+        			int snap_index = -1;
+        			for (int i = snap_count - 1; i >= 0; i--) {
+        			    if (snap_wins[i][0] == parentWin) {
+        			        snap_index = i;
+        			        break;
+        			    }
+        			}
+        			
+        			// remove unsnapped window from snap array if above check is true; and unsnapping itself
+        			if (snap_index != -1) {
+
+        			    snprintf(launch, sizeof(launch), "/bin/sh %s/unsnap %lu %i %i %i %i", configbase, parentWin,
+        			            scrinfo.screens[scrnn].width,scrinfo.screens[scrnn].height,scrinfo.screens[scrnn].x, scrinfo.screens[scrnn].y);
+        			    system(launch);							// it's important for "if maxzimized" in config
+        			    
+        			    int pos_x = (mousepos.x - (int)(snap_wins[snap_count - 1][1] / 2));
+        			    int pos_y = (mousepos.y - (int)(snap_wins[snap_count - 1][2] / 2));
+        			    XMoveWindow(dsp, parentWin, pos_x, pos_y);
+        			    XResizeWindow(dsp, parentWin, snap_wins[snap_count - 1][1], snap_wins[snap_count - 1][2]);
+        			    
+        			   // usleep(20000);
+        			    printf("%d %d\n", pos_x, pos_y);
+
+        			    for (int i = snap_index; i < snap_count - 1; i++) {
+        			        snap_wins[i][0] = snap_wins[i + 1][0]; 
+        			        snap_wins[i][1] = snap_wins[i + 1][1]; 
+        			        snap_wins[i][2] = snap_wins[i + 1][2];
+        			    }
+        			    snap_count--; 
+        			}
+        			        		
         		}
         	}
             if(relativeMousepos.y<=offset)
@@ -111,14 +159,27 @@ int main(int argc, char **argv)
         if(verbose)printf("action is: %d, isdrag is: %d, state is: %i\n",action,isdrag, mousepos.state);
         if(((((16 & mousepos.state) == mousepos.state || (!(mask & Button1Mask))) && isdrag))) {
 
-
+			// snapping
             if(action){
+            	// save pos and size before snapping #1
+            	printf("\npresave\n");
+            	int presnap_x, presnap_y;
+            	unsigned int presnap_width, presnap_height;
+            	printf("\nsaving\n");
+            	getWindowRect(dsp, &parentWin, &presnap_x, &presnap_y, &presnap_width, &presnap_height);
+            	printf("\nsave\n");
                 getFocusedWindow(dsp,&activeWindow);
                 findParentWindow(dsp,&activeWindow,&parentWin);
                 if(verbose)printf("Running script: %s",SCRIPT_NAMES[action]);
-                snprintf(launch, sizeof(launch), "/bin/sh %s/%s %lu %i %i %i %i",configbase,SCRIPT_NAMES[action],parentWin,
+                snprintf(launch, sizeof(launch), "/bin/sh %s/%s %lu %i %i %i %i", configbase, SCRIPT_NAMES[action], parentWin,
                         scrinfo.screens[scrnn].width,scrinfo.screens[scrnn].height,scrinfo.screens[scrnn].x, scrinfo.screens[scrnn].y);
                 system(launch);
+				printf("\nsnap\n");
+                // add to snaplist 
+                snap_wins[snap_count][0] = parentWin;
+                snap_wins[snap_count][1] = presnap_width;
+                snap_wins[snap_count][2] = presnap_height;
+                snap_count++;
             }
             action=0;
         }
@@ -133,69 +194,6 @@ int main(int argc, char **argv)
     return 0;
 }
 
-void parseOpts(int argc, char **argv){
-    struct option longopts[] = {
-        {"config",  1, NULL, 'c'},
-        {"offset",  1, NULL, 'o'},
-        {"daemon",  0, NULL, 'd'},
-        {"info",    0, NULL, 'i'},
-        {"verbose", 0, NULL, 'v'},
-        {"help",    0, NULL, 'h'},
-        {"version", 0, NULL, 'V'},
-        {0, 0, 0, 0}};
-
-    int opt=0;
-    while((opt = getopt_long(argc,argv,"c:o:divVh",longopts,NULL)) != -1){
-        switch(opt){
-            case 'c':
-                strncpy(configbase,optarg,MY_MAXPATH);
-                configbase[MY_MAXPATH-1]='\0';
-                break;
-            case 'd':
-                if(daemon(0,0) == -1){
-                    perror("daemon");
-                    exit(EXIT_FAILURE);
-                }
-                break;
-            case 'i':
-                dumpInfo(&scrinfo);
-                exit(EXIT_SUCCESS);
-                break;
-            case 'v':
-                verbose=1;
-                break;
-            case 'V':
-                printf("opensnap version %s\n", versionstring);
-                exit(EXIT_SUCCESS);
-            case 'o':
-                offset=atoi(optarg);
-                break;
-            case 'h':
-            case '?':
-                printHelp();
-                exit(EXIT_FAILURE);
-                break;
-        }
-    }
-}
-
-void findAndSetDefaultConfigDir() {
-    char *home = getenv("HOME");
-    if(home == NULL) {
-        goto fallback;
-    }
-    strncpy(configbase, home, sizeof(configbase));
-    strncat(configbase, "/.config/opensnap/", sizeof(configbase) - strlen(configbase) - 1);
-    configbase[sizeof(configbase)-1]='\0';
-    configbase[sizeof(configbase)-1]='\0';
-
-    if(directoryExists(configbase)){
-        return;
-    }
-
-fallback:
-    strncpy(configbase, GLOBAL_CONFPATH, sizeof(configbase));
-}
 
 void getMousePosition(Display *dsp, XEvent *event, mousestate *cords){
     XQueryPointer(dsp, RootWindow(dsp, DefaultScreen(dsp)),
@@ -251,20 +249,20 @@ void getScreens(screens *scrinfo){
     }
 }
 
-void getFocusedWindow(Display *dsp,Window *w){
+void getFocusedWindow(Display *dsp, Window *w){
     int revert;
-    XGetInputFocus(dsp,w,&revert);
+    XGetInputFocus(dsp, w, &revert);
 }
 
 void findParentWindow(Display *dsp, Window *w, Window *parent){
-    xdo_window_find_client(dsp,*w,parent,XDO_FIND_PARENTS);
+    xdo_window_find_client(dsp, *w, parent, XDO_FIND_PARENTS);
 }
 
 void getWindowRect(Display *dsp, Window *win, int *x, int *y, unsigned int *w, unsigned int *h){
-    unsigned int bw,d;
+    unsigned int bw, d;
     int junkx, junky;
     Window junkroot =  RootWindow(dsp, 0);
-    XGetGeometry(dsp,*win,&junkroot,&junkx,&junky,w,h,&bw,&d);
+    XGetGeometry(dsp, *win, &junkroot, &junkx, &junky,w, h, &bw, &d);
     XTranslateCoordinates(dsp, *win, junkroot, junkx, junky, x, y, &junkroot);
 }
 
@@ -318,4 +316,71 @@ int isTitlebarHit(Display *dsp, mousestate *mousepos){
         return 1;
     }
     return 0;
+}
+
+/*| --------------------------------------------------------------------------------------------------------------------------------------------------------------------  |*/
+
+void parseOpts(int argc, char **argv){
+    struct option longopts[] = {
+        {"config",  1, NULL, 'c'},
+        {"offset",  1, NULL, 'o'},
+        {"daemon",  0, NULL, 'd'},
+        {"info",    0, NULL, 'i'},
+        {"verbose", 0, NULL, 'v'},
+        {"help",    0, NULL, 'h'},
+        {"version", 0, NULL, 'V'},
+        {0, 0, 0, 0}};
+
+    int opt=0;
+    while((opt = getopt_long(argc,argv,"c:o:divVh",longopts,NULL)) != -1){
+        switch(opt){
+            case 'c':
+                strncpy(configbase,optarg,MY_MAXPATH);
+                configbase[MY_MAXPATH-1]='\0';
+                break;
+            case 'd':
+                if(daemon(0,0) == -1){
+                    perror("daemon");
+                    exit(EXIT_FAILURE);
+                }
+                break;
+            case 'i':
+                dumpInfo(&scrinfo);
+                exit(EXIT_SUCCESS);
+                break;
+            case 'v':
+                verbose=1;
+                break;
+            case 'V':
+                printf("opensnap version %s\n", versionstring);
+                exit(EXIT_SUCCESS);
+            case 'o':
+                offset=atoi(optarg);
+                break;
+            case 'h':
+            case '?':
+                printHelp();
+                exit(EXIT_FAILURE);
+                break;
+        }
+    }
+}
+
+
+void findAndSetDefaultConfigDir() {
+    char *home = getenv("HOME");
+    if(home == NULL) {
+        goto fallback;
+    }
+    strncpy(configbase, home, sizeof(configbase));
+    strncat(configbase, "/.config/opensnap/", sizeof(configbase) - strlen(configbase) - 1);
+    configbase[sizeof(configbase)-1]='\0';
+    configbase[sizeof(configbase)-1]='\0';
+
+    if(directoryExists(configbase)){
+        return;
+    }
+
+fallback:
+    strncpy(configbase, GLOBAL_CONFPATH, sizeof(configbase));
 }
