@@ -42,7 +42,7 @@ Fetch via git:
 
 Build and install it:
 
-    cd opensnap*
+    cd Opensnap-Extended
     make
     sudo make install
 
